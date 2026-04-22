@@ -31,6 +31,11 @@ device_type:
       value: 4
       device_type: SPACEDOS
       description: SPACEDOS device family
+      
+    - name: DEVICE_TYPE_BATDATUNIT
+      value: 100
+      device_type: BATDATUNIT
+      description: AIRDOS device family
 
 hardware_version:
   description: >
@@ -127,3 +132,21 @@ known_devices:
     hardware_version:
       device_version: 4
       hardware_revision: null
+  
+  - full_name: BATDATUNIT01A
+    device_type: BATDATUNIT
+    hardware_version:
+      device_version: 1
+      hardware_revision: A
+
+  - full_name: BATDATUNIT01B
+    device_type: BATDATUNIT
+    hardware_version:
+      device_version: 1
+      hardware_revision: B
+
+  - full_name: BATDATUNIT01C
+    device_type: BATDATUNIT
+    hardware_version:
+      device_version: 1
+      hardware_revision: C
