@@ -1,0 +1,88 @@
+eeprom_layout:
+  name: dosimeter_eeprom
+  language: en
+  endianness: little
+  checksum:
+    algorithm: crc32
+    coverage: full_structure
+    checksum_field_behavior: replace_checksum_bytes_with_zero_before_crc
+
+  notes:
+    - "The EEPROM layout should be represented by a fixed C/C++ struct with explicit field sizes."
+    - "The same binary layout should be readable and writable from both Arduino/C++ and Python."
+    - "RTC validity should be determined from RTC chip status flags."
+    - "The last RTC reset/init time should be stored so the log header can contain an approximate device power-on estimate."
+    - "Device variants are intentionally ignored here; this is a single unified structure."
+    - "RTC history should be stored as an array of triplets, not as three separate arrays."
+
+  fields:
+    format_version:
+      type: uint16
+      description: EEPROM format version for backward compatibility
+
+    device_type:
+      type: uint16
+      description: Device type identifier
+      encoding: enum
+
+    crc32:
+      type: uint32
+      description: Structure checksum
+      crc_zero_fill: true
+
+    hardware_version:
+      type: struct
+      description: Device version and hardware revision
+      fields:
+        device_version:
+          type: uint8
+          range: "1-99"
+        hardware_revision:
+          type: uint8
+          range: "A-Z"
+
+    device_identifier:
+      type: char[24]
+      description: Human-readable device identifier
+      example: "animal name printed on enclosure"
+
+    operating_modes:
+      type: uint16
+      description: Operating modes and configuration flags
+
+    rtc_flags:
+      type: uint8
+      description: RTC capability and status flags
+      bit_mapping:
+        bit_0: has_rtc
+        bit_1: has_rtc_backup_battery
+        bit_2: rtc_initialized
+        bit_3: rtc_power_loss_detected
+        bit_4: geiger_mode_enabled
+        bit_5: led_enabled
+        bit_6: reserved
+        bit_7: reserved
+
+    rtc_history:
+      type: array
+      length: 5
+      description: History table of RTC-related reference points
+      item_type: struct
+      item_fields:
+        rtc_initialization_timestamp:
+          type: uint32
+          description: Time when RTC was reset or initialized
+        reference_timestamp:
+          type: uint32
+          description: Periodically updated reference time
+        rtc_value_at_reference_timestamp:
+          type: uint32
+          description: RTC counter/state captured when the reference timestamp was written
+
+    calibration_constants:
+      type: float[3]
+      description: Calibration parameters
+
+    calibration_version:
+      type: uint32
+      description: Calibration timestamp or calibration version

@@ -1,0 +1,129 @@
+device_type:
+  enum_name: DeviceType
+  description: >
+    Enumeration source for the EEPROM field `device_type`.
+    This field contains only the alphabetic detector family name.
+    The numeric device version and trailing hardware revision are stored separately
+    in `hardware_version.device_version` and `hardware_version.hardware_revision`.
+
+  values:
+    - name: DEVICE_TYPE_UNKNOWN
+      value: 0
+      device_type: UNKNOWN
+      description: Unknown or unspecified device family
+
+    - name: DEVICE_TYPE_AIRDOS
+      value: 1
+      device_type: AIRDOS
+      description: AIRDOS device family
+
+    - name: DEVICE_TYPE_GEODOS
+      value: 2
+      device_type: GEODOS
+      description: GEODOS device family
+
+    - name: DEVICE_TYPE_LABDOS
+      value: 3
+      device_type: LABDOS
+      description: LABDOS device family
+
+    - name: DEVICE_TYPE_SPACEDOS
+      value: 4
+      device_type: SPACEDOS
+      description: SPACEDOS device family
+
+hardware_version:
+  description: >
+    Structure for the EEPROM field `hardware_version`.
+    This splits the full product code into `device_version` and `hardware_revision`.
+
+  device_version:
+    type: uint8
+    range: [1, 99]
+    format: "%02u"
+    description: Numeric device version appended to `device_type`
+
+  hardware_revision:
+    type: char
+    nullable: true
+    range: ["A", "Z"]
+    description: Optional trailing hardware revision letter
+
+known_devices:
+  - full_name: AIRDOS01
+    device_type: AIRDOS
+    hardware_version:
+      device_version: 1
+      hardware_revision: null
+
+  - full_name: AIRDOS02
+    device_type: AIRDOS
+    hardware_version:
+      device_version: 2
+      hardware_revision: null
+
+  - full_name: AIRDOS03A
+    device_type: AIRDOS
+    hardware_version:
+      device_version: 3
+      hardware_revision: A
+
+  - full_name: AIRDOS03B
+    device_type: AIRDOS
+    hardware_version:
+      device_version: 3
+      hardware_revision: B
+
+  - full_name: AIRDOS04A
+    device_type: AIRDOS
+    hardware_version:
+      device_version: 4
+      hardware_revision: A
+
+  - full_name: AIRDOS04B
+    device_type: AIRDOS
+    hardware_version:
+      device_version: 4
+      hardware_revision: B
+
+  - full_name: AIRDOS04C
+    device_type: AIRDOS
+    hardware_version:
+      device_version: 4
+      hardware_revision: C
+
+  - full_name: GEODOS01
+    device_type: GEODOS
+    hardware_version:
+      device_version: 1
+      hardware_revision: null
+
+  - full_name: GEODOS02
+    device_type: GEODOS
+    hardware_version:
+      device_version: 2
+      hardware_revision: null
+
+  - full_name: LABDOS01
+    device_type: LABDOS
+    hardware_version:
+      device_version: 1
+      hardware_revision: null
+
+  - full_name: SPACEDOS01B
+    device_type: SPACEDOS
+    hardware_version:
+      device_version: 1
+      hardware_revision: B
+
+  - full_name: SPACEDOS02
+    device_type: SPACEDOS
+    hardware_version:
+      device_version: 2
+      hardware_revision: null
+
+  - full_name: SPACEDOS04
+    device_type: SPACEDOS
+    hardware_version:
+      device_version: 4
+      hardware_revision: null

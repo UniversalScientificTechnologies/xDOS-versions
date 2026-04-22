@@ -1,0 +1,44 @@
+name: Generate device headers
+
+on:
+  push:
+    branches: ["main", "master"]
+    paths:
+      - "eeprom_layout.yaml"
+      - "xDOS_devices.yaml"
+      - "scripts/generate.py"
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch the full branch so we can push back
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Generate C/C++ and Python sources
+        run: python scripts/generate.py
+
+      - name: Commit generated files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add generated/
+          if git diff --cached --quiet; then
+            echo "No changes to generated files."
+          else
+            git commit -m "chore: regenerate device headers from YAML [skip ci]"
+            git push
+          fi
