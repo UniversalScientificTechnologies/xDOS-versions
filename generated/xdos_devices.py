@@ -10,6 +10,7 @@ class DeviceType(enum.IntEnum):
     GEODOS = 2
     LABDOS = 3
     SPACEDOS = 4
+    BATDATUNIT = 100
 
 @dataclass(frozen=True)
 class KnownDevice:
@@ -32,6 +33,9 @@ KNOWN_DEVICES: list[KnownDevice] = [
     KnownDevice("SPACEDOS01B", DeviceType.SPACEDOS, 1, "B"),
     KnownDevice("SPACEDOS02", DeviceType.SPACEDOS, 2, None),
     KnownDevice("SPACEDOS04", DeviceType.SPACEDOS, 4, None),
+    KnownDevice("BATDATUNIT01A", DeviceType.BATDATUNIT, 1, "A"),
+    KnownDevice("BATDATUNIT01B", DeviceType.BATDATUNIT, 1, "B"),
+    KnownDevice("BATDATUNIT01C", DeviceType.BATDATUNIT, 1, "C"),
 ]
 
 KNOWN_DEVICES_BY_NAME: dict[str, KnownDevice] = {
