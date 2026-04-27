@@ -89,3 +89,57 @@ python scripts/generate.py
 | `rtc_history[5]` | struct[5] | RTC initialisation history (timestamp triplets) |
 | `calibration_constants[3]` | `float[3]` | Calibration parameters |
 | `calibration_version` | `uint32` | Calibration timestamp |
+
+## RTC history semantics
+
+`rtc_history[]` stores timing data for RTC chips that run as an elapsed-time
+counter, for example PCF85263A in stopwatch mode. Each entry is a triplet:
+
+| Field | Meaning |
+|-------|---------|
+| `rtc_initialization_timestamp` | Unix UTC timestamp when the RTC counter was reset or initialized. This is mainly historical/context information. |
+| `reference_timestamp` | Unix UTC timestamp of RTC counter value 0. This is the derived stopwatch-start timestamp, kept directly for simple firmware time reconstruction. |
+| `rtc_value_at_reference_timestamp` | RTC elapsed counter value, in seconds, at the moment when `reference_timestamp` was updated. |
+
+The canonical interpretation is therefore:
+
+```text
+absolute_time = reference_timestamp + current_rtc_counter
+```
+
+The age of the last RTC synchronization/update is:
+
+```text
+sync_age = current_rtc_counter - rtc_value_at_reference_timestamp
+```
+
+The actual UTC time when the last synchronization/update was made can be derived
+as:
+
+```text
+last_update_time = reference_timestamp + rtc_value_at_reference_timestamp
+```
+
+When initializing a freshly reset RTC, use:
+
+```text
+rtc_initialization_timestamp = now_utc
+reference_timestamp = now_utc
+rtc_value_at_reference_timestamp = 0
+```
+
+When synchronizing an already running RTC without resetting the chip, update the
+zero-time estimate as:
+
+```text
+rtc_initialization_timestamp = previous rtc_initialization_timestamp
+reference_timestamp = now_utc - current_rtc_counter
+rtc_value_at_reference_timestamp = current_rtc_counter
+```
+
+This layout is mathematically equivalent to storing the literal reference
+measurement pair `(now_utc, current_rtc_counter)`, because
+`now_utc = reference_timestamp + rtc_value_at_reference_timestamp`. The chosen
+form stores the value most useful to firmware directly: the current absolute
+time can be computed as `reference_timestamp + current_rtc_counter`, while the
+third field still records how old the synchronization point is.

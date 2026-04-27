@@ -74,10 +74,10 @@ eeprom_layout:
           description: Time when RTC was reset or initialized
         reference_timestamp:
           type: uint32
-          description: Periodically updated reference time
+          description: Periodically updated Unix timestamp of RTC counter value 0
         rtc_value_at_reference_timestamp:
           type: uint32
-          description: RTC counter/state captured when the reference timestamp was written
+          description: RTC counter/state captured when the zero-time timestamp was updated
 
     calibration_constants:
       type: float[3]
