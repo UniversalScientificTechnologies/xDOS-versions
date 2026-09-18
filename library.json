@@ -1,0 +1,17 @@
+{
+  "name": "xDOS-versions",
+  "description": "Generated C/C++ definitions of the xDOS dosimeter EEPROM layout and device registry. Header only.",
+  "keywords": "xdos, dosimeter, eeprom, airdos, spacedos, labdos",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UniversalScientificTechnologies/xDOS-versions.git"
+  },
+  "frameworks": "*",
+  "platforms": "*",
+  "headers": ["eeprom_layout.h", "xdos_devices.h"],
+  "build": {
+    "includeDir": "generated",
+    "srcDir": "generated",
+    "srcFilter": ["-<*>"]
+  }
+}

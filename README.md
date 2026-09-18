@@ -52,6 +52,8 @@ git submodule update --init
 
 **Firmware (CMake / Arduino):** add `xdos-versions/generated/` to the include path.
 
+**Firmware (PlatformIO):** the repository root contains a `library.json`, so PlatformIO picks it up as a header-only library (e.g. via `lib_deps = symlink://path/to/xDOS-versions`) and adds `generated/` to the include path by itself.
+
 **Python project:** add `xdos-versions/` to `sys.path` or install as `pip install -e xdos-versions/`.
 
 ## Adding a new device
