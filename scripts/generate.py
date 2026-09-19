@@ -84,6 +84,35 @@ def _c_fields(fields: dict, indent: int = 1) -> list[str]:
     return lines
 
 
+SCALAR_SIZES = {
+    "uint8": 1, "uint16": 2, "uint32": 4,
+    "int8": 1, "int16": 2, "int32": 4,
+    "float": 4, "double": 8, "char": 1,
+}
+
+
+def _field_size(fdef: dict) -> int:
+    """Size of one field in bytes (the layout is packed)."""
+    t = fdef["type"]
+    if t == "struct":
+        return sum(_field_size(f) for f in fdef["fields"].values())
+    if t == "array":
+        return fdef["length"] * sum(_field_size(f) for f in fdef["item_fields"].values())
+    base, count = parse_type(t)
+    return SCALAR_SIZES[base] * (count or 1)
+
+
+def record_sizes(layout: dict) -> list:
+    """[(version, size, aliases), ...] from layout["format_versions"]."""
+    ends = {}
+    offset = 0
+    for fname, fdef in layout["fields"].items():
+        offset += _field_size(fdef)
+        ends[fname] = offset
+    return [(v["version"], ends[v["last_field"]], v.get("aliases", []))
+            for v in layout.get("format_versions", [])]
+
+
 def eeprom_h(layout: dict) -> str:
     struct_name = pascal(layout["name"])
     fields = layout["fields"]
@@ -108,6 +137,27 @@ def eeprom_h(layout: dict) -> str:
                 bit_num = int(bit_key.split("_")[1])
                 out.append(f"#define EEPROM_{bit_name.upper()} (1u << {bit_num})")
             out.append("")
+
+    sizes = record_sizes(layout)
+    if sizes:
+        out.append("/* Record size of each format_version; the CRC covers exactly these bytes. */")
+        out.append(f"#define EEPROM_FORMAT_VERSION_LATEST {sizes[-1][0]}")
+        for version, size, _ in sizes:
+            out.append(f"#define EEPROM_RECORD_SIZE_V{version} {size}")
+        out.append("")
+        out.append("/* Record size for a format_version, 0 = unknown version. */")
+        out.append("static inline uint16_t eeprom_record_size(uint16_t format_version)")
+        out.append("{")
+        out.append("    switch (format_version) {")
+        for version, size, aliases in sizes:
+            for v in list(aliases) + [version]:
+                out.append(f"    case {v}:")
+            out.append(f"        return {size};")
+        out.append("    default:")
+        out.append("        return 0;")
+        out.append("    }")
+        out.append("}")
+        out.append("")
 
     return "\n".join(out)
 
@@ -198,6 +248,17 @@ def eeprom_py(layout: dict) -> str:
         out.append(f'        ("{fn}", {ft}),')
     out.append("    ]")
     out.append("")
+
+    sizes = record_sizes(layout)
+    if sizes:
+        out.append("# Record size of each format_version; the CRC covers exactly these bytes.")
+        out.append(f"FORMAT_VERSION_LATEST = {sizes[-1][0]}")
+        out.append("RECORD_SIZE_BY_VERSION = {")
+        for version, size, aliases in sizes:
+            for v in list(aliases) + [version]:
+                out.append(f"    {v}: {size},")
+        out.append("}")
+        out.append("")
     return "\n".join(out)
 
 
@@ -295,7 +356,8 @@ def init_py() -> str:
     return (
         "# Auto-generated — do not edit manually.\n"
         "from .xdos_devices import DeviceType, KnownDevice, KNOWN_DEVICES, KNOWN_DEVICES_BY_NAME\n"
-        "from .eeprom_layout import DosimeterEeprom, RtcFlagsFlags\n"
+        "from .eeprom_layout import (DosimeterEeprom, RtcFlagsFlags,\n"
+        "                            FORMAT_VERSION_LATEST, RECORD_SIZE_BY_VERSION)\n"
     )
 
 

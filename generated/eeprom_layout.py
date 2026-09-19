@@ -39,4 +39,17 @@ class DosimeterEeprom(ctypes.LittleEndianStructure):
         ("rtc_history", RtcHistoryEntry * 5),
         ("calibration_constants", ctypes.c_float * 3),
         ("calibration_version", ctypes.c_uint32),
+        ("num_noise_channels_default", ctypes.c_uint16),
+        ("si_chip_area_cm2", ctypes.c_float),
+        ("si_chip_thickness_cm", ctypes.c_float),
+        ("energy_range_min_mev", ctypes.c_float),
+        ("energy_range_max_mev", ctypes.c_float),
     ]
+
+# Record size of each format_version; the CRC covers exactly these bytes.
+FORMAT_VERSION_LATEST = 2
+RECORD_SIZE_BY_VERSION = {
+    0: 113,
+    1: 113,
+    2: 131,
+}

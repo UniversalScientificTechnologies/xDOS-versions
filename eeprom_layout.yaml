@@ -14,6 +14,18 @@ eeprom_layout:
     - "The last RTC reset/init time should be stored so the log header can contain an approximate device power-on estimate."
     - "Device variants are intentionally ignored here; this is a single unified structure."
     - "RTC history should be stored as an array of triplets, not as three separate arrays."
+    - "New fields are only ever appended. format_version tells how many bytes belong to the record (see format_versions); the CRC covers exactly those bytes."
+    - "Fields a record does not have read back as 0xFF from an erased EEPROM: 0xFFFF for uint16 and NaN for float, i.e. unknown."
+
+  # Record size of each format version = offset of the end of last_field.
+  format_versions:
+    - version: 1
+      last_field: calibration_version
+      aliases: [0]
+      description: "Original layout (113 B). Records written by early tools may carry format_version 0 with the same layout."
+    - version: 2
+      last_field: energy_range_max_mev
+      description: "Adds measurement metadata: default noise channels, silicon chip geometry and energy range (131 B)."
 
   fields:
     format_version:
@@ -86,3 +98,25 @@ eeprom_layout:
     calibration_version:
       type: uint32
       description: Calibration timestamp or calibration version
+
+    # --- format_version 2 ---
+
+    num_noise_channels_default:
+      type: uint16
+      description: Default number of leading spectrum channels with noise ($CHAN in the xDOS data format); 0xFFFF = unknown
+
+    si_chip_area_cm2:
+      type: float
+      description: Sensitive area of the silicon chip in cm2 ($DIODE); NaN = unknown
+
+    si_chip_thickness_cm:
+      type: float
+      description: Depletion layer thickness of the silicon chip in cm ($DIODE); NaN = unknown
+
+    energy_range_min_mev:
+      type: float
+      description: Lower bound of the measured deposited energy in MeV ($ERNG); NaN = unknown
+
+    energy_range_max_mev:
+      type: float
+      description: Upper bound of the measured deposited energy in MeV ($ERNG); NaN = unknown
