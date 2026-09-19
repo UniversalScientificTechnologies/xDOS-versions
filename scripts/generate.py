@@ -301,6 +301,32 @@ def devices_h(data: dict) -> str:
     out.append("static const int KNOWN_DEVICE_COUNT =")
     out.append("    (int)(sizeof(KNOWN_DEVICES) / sizeof(KNOWN_DEVICES[0]));")
     out.append("")
+    # Family names for text output (e.g. the device name in a log header).
+    # On AVR they stay in flash; only the names a firmware actually uses are
+    # linked in.
+    out.append("/* Family name of a device_type for text output, e.g. \"AIRDOS\". */")
+    out.append("#ifdef __AVR__")
+    out.append("#include <avr/pgmspace.h>")
+    out.append("#define XDOS_NAME_STORAGE PROGMEM")
+    out.append("#else")
+    out.append("#define XDOS_NAME_STORAGE")
+    out.append("#endif")
+    for v in enum_def["values"]:
+        out.append(f'static const char {v["name"]}_NAME[] XDOS_NAME_STORAGE = "{v["device_type"]}";')
+    out.append("")
+    out.append("/* Name of a device_type, NULL for an unknown value. On AVR the string is")
+    out.append(" * in flash (PROGMEM) - read it with strcpy_P() and friends. */")
+    out.append(f"static inline const char *device_type_name(uint16_t device_type)")
+    out.append("{")
+    out.append("    switch (device_type) {")
+    for v in enum_def["values"]:
+        out.append(f"    case {v['value']}:")
+        out.append(f"        return {v['name']}_NAME;")
+    out.append("    default:")
+    out.append("        return 0;")
+    out.append("    }")
+    out.append("}")
+    out.append("")
     return "\n".join(out)
 
 
