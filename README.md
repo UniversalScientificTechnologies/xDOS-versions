@@ -23,7 +23,24 @@ Input data is maintained as YAML files. GitHub Actions automatically regenerates
 
 `eeprom_layout.h` pulls in `xdos_devices.h` automatically.
 
-`DosimeterEeprom` is `__attribute__((packed))`, little-endian, **113 bytes**.
+`DosimeterEeprom` is `__attribute__((packed))`, little-endian, **131 bytes**
+(the latest `format_version`, 2).
+
+### Format versions
+
+Fields are only ever appended. `format_version` in the record tells how many
+bytes belong to it, and the CRC covers exactly those bytes:
+
+| `format_version` | size | adds |
+|---|---|---|
+| 1 (and 0 from early tools) | 113 B | original layout, up to `calibration_version` |
+| 2 | 131 B | `num_noise_channels_default`, `si_chip_area_cm2`, `si_chip_thickness_cm`, `energy_range_min_mev`, `energy_range_max_mev` |
+
+The sizes are generated from `format_versions` in `eeprom_layout.yaml`:
+`EEPROM_RECORD_SIZE_V1`, `EEPROM_RECORD_SIZE_V2`, `eeprom_record_size(version)`
+in C, `RECORD_SIZE_BY_VERSION` in Python. Reading a shorter record into the
+full struct, fields it does not have come from the erased EEPROM as `0xFF`:
+`0xFFFF` for `uint16` and NaN for `float` - i.e. unknown.
 
 ```c
 DosimeterEeprom eeprom;
@@ -51,6 +68,8 @@ git submodule update --init
 ```
 
 **Firmware (CMake / Arduino):** add `xdos-versions/generated/` to the include path.
+
+**Firmware (PlatformIO):** the repository root contains a `library.json`, so PlatformIO picks it up as a header-only library (e.g. via `lib_deps = symlink://path/to/xDOS-versions`) and adds `generated/` to the include path by itself.
 
 **Python project:** add `xdos-versions/` to `sys.path` or install as `pip install -e xdos-versions/`.
 
@@ -89,6 +108,9 @@ python scripts/generate.py
 | `rtc_history[5]` | struct[5] | RTC initialisation history (timestamp triplets) |
 | `calibration_constants[3]` | `float[3]` | Calibration parameters |
 | `calibration_version` | `uint32` | Calibration timestamp |
+| `num_noise_channels_default` | `uint16` | Default number of noise channels (since version 2) |
+| `si_chip_area_cm2`, `si_chip_thickness_cm` | `float` | Silicon chip geometry (since version 2) |
+| `energy_range_min_mev`, `energy_range_max_mev` | `float` | Measured energy range (since version 2) |
 
 ## RTC history semantics
 

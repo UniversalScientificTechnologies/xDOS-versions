@@ -14,7 +14,7 @@ python scripts/generate.py
 # Quick smoke-test: import the generated Python package and check struct size
 python3 -c "
 from generated.eeprom_layout import DosimeterEeprom
-import ctypes; print(ctypes.sizeof(DosimeterEeprom))  # expect 113
+import ctypes; print(ctypes.sizeof(DosimeterEeprom))  # expect 131 (format_version 2)
 "
 ```
 

@@ -52,7 +52,11 @@ hardware_version:
     type: char
     nullable: true
     range: ["A", "Z"]
-    description: Optional trailing hardware revision letter
+    description: >
+      Optional trailing hardware revision letter. The letter Z is reserved for
+      development units (engineering models) so that their data is never taken
+      for a flight or production unit; which development unit it is (EM2, EM3,
+      ...) is written in `device_identifier`.
 
 known_devices:
   - full_name: AIRDOS01
@@ -132,6 +136,18 @@ known_devices:
     hardware_version:
       device_version: 4
       hardware_revision: null
+
+  - full_name: SPACEDOS04A
+    device_type: SPACEDOS
+    hardware_version:
+      device_version: 4
+      hardware_revision: A
+
+  - full_name: SPACEDOS04Z
+    device_type: SPACEDOS
+    hardware_version:
+      device_version: 4
+      hardware_revision: Z
   
   - full_name: BATDATUNIT01A
     device_type: BATDATUNIT

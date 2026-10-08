@@ -33,6 +33,8 @@ KNOWN_DEVICES: list[KnownDevice] = [
     KnownDevice("SPACEDOS01B", DeviceType.SPACEDOS, 1, "B"),
     KnownDevice("SPACEDOS02", DeviceType.SPACEDOS, 2, None),
     KnownDevice("SPACEDOS04", DeviceType.SPACEDOS, 4, None),
+    KnownDevice("SPACEDOS04A", DeviceType.SPACEDOS, 4, "A"),
+    KnownDevice("SPACEDOS04Z", DeviceType.SPACEDOS, 4, "Z"),
     KnownDevice("BATDATUNIT01A", DeviceType.BATDATUNIT, 1, "A"),
     KnownDevice("BATDATUNIT01B", DeviceType.BATDATUNIT, 1, "B"),
     KnownDevice("BATDATUNIT01C", DeviceType.BATDATUNIT, 1, "C"),
