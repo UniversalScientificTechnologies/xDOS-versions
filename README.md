@@ -23,8 +23,8 @@ Input data is maintained as YAML files. GitHub Actions automatically regenerates
 
 `eeprom_layout.h` pulls in `xdos_devices.h` automatically.
 
-`DosimeterEeprom` is `__attribute__((packed))`, little-endian, **131 bytes**
-(the latest `format_version`, 2).
+`DosimeterEeprom` is `__attribute__((packed))`, little-endian, **150 bytes**
+(the latest `format_version`, 3).
 
 ### Format versions
 
@@ -35,9 +35,10 @@ bytes belong to it, and the CRC covers exactly those bytes:
 |---|---|---|
 | 1 (and 0 from early tools) | 113 B | original layout, up to `calibration_version` |
 | 2 | 131 B | `num_noise_channels_default`, `si_chip_area_cm2`, `si_chip_thickness_cm`, `energy_range_min_mev`, `energy_range_max_mev` |
+| 3 | 150 B | `calibration_type`, `calibration_extra`, `detector_id` |
 
 The sizes are generated from `format_versions` in `eeprom_layout.yaml`:
-`EEPROM_RECORD_SIZE_V1`, `EEPROM_RECORD_SIZE_V2`, `eeprom_record_size(version)`
+`EEPROM_RECORD_SIZE_V1` … `EEPROM_RECORD_SIZE_V3`, `eeprom_record_size(version)`
 in C, `RECORD_SIZE_BY_VERSION` in Python. Reading a shorter record into the
 full struct, fields it does not have come from the erased EEPROM as `0xFF`:
 `0xFFFF` for `uint16` and NaN for `float` - i.e. unknown.
@@ -111,6 +112,24 @@ python scripts/generate.py
 | `num_noise_channels_default` | `uint16` | Default number of noise channels (since version 2) |
 | `si_chip_area_cm2`, `si_chip_thickness_cm` | `float` | Silicon chip geometry (since version 2) |
 | `energy_range_min_mev`, `energy_range_max_mev` | `float` | Measured energy range (since version 2) |
+| `calibration_type` | `uint16` (enum) | How to read the calibration fields: `linear` = 1, `linear_with_neutrons` = 2; `0xFFFF` = not stated (since version 3) |
+| `calibration_extra[4]` | `float[4]` | Extra parameters by `calibration_type`; `linear_with_neutrons`: `[min_ch, max_ch, k, q]` (since version 3) |
+| `detector_id` | `uint8` | Number of the detector within its experiment; 255 = unknown (since version 3) |
+
+## Calibration types
+
+`calibration_type` says how to read `calibration_constants` and
+`calibration_extra`, so a device can use another calibration without a new
+layout:
+
+| value | name | `calibration_extra` |
+|---|---|---|
+| 1 | `linear` | unused (NaN) |
+| 2 | `linear_with_neutrons` | `[min_ch, max_ch, k, q]`: an event above the threshold is a neutron if `min_ch <= ch0 <= max_ch` and `ch1 < q + k * ch0` (`ch0` = amplitude, `ch1` = second sample after a fixed delay - pulse shape) |
+
+`EEPROM_CALIBRATION_TYPE_*` in C, `CalibrationType` in Python. Records of
+version 1 and 2 do not have the field (`0xFFFF`) and use only
+`calibration_constants`.
 
 ## RTC history semantics
 

@@ -14,7 +14,7 @@ python scripts/generate.py
 # Quick smoke-test: import the generated Python package and check struct size
 python3 -c "
 from generated.eeprom_layout import DosimeterEeprom
-import ctypes; print(ctypes.sizeof(DosimeterEeprom))  # expect 131 (format_version 2)
+import ctypes; print(ctypes.sizeof(DosimeterEeprom))  # expect 150 (format_version 3)
 "
 ```
 
@@ -35,7 +35,7 @@ The generator is intentionally self-contained in `scripts/generate.py` with no b
 
 ## YAML schema conventions
 
-**`eeprom_layout.yaml`** — top-level key `eeprom_layout`. Fields use scalar types (`uint8`, `uint16`, `uint32`, `float`, `char[N]`), `type: struct` with nested `fields:`, or `type: array` with `length:` and `item_fields:`. Fields with `bit_mapping:` emit `#define EEPROM_<NAME>` macros in C and an `IntFlag` class in Python. The `encoding: enum` annotation on `device_type` is documentation only.
+**`eeprom_layout.yaml`** — top-level key `eeprom_layout`. Fields use scalar types (`uint8`, `uint16`, `uint32`, `float`, `char[N]`), `type: struct` with nested `fields:`, or `type: array` with `length:` and `item_fields:`. Fields with `bit_mapping:` emit `#define EEPROM_<NAME>` macros in C and an `IntFlag` class in Python; fields with `enum_values:` (value: name) emit `#define EEPROM_<FIELD>_<NAME>` in C and an `IntEnum` class named after the field in Python. The `encoding: enum` annotation on `device_type` is documentation only.
 
 **`xDOS_devices.yaml`** — three top-level keys: `device_type` (enum definition with `enum_name` and `values` list), `hardware_version` (descriptor, not used by generator directly), and `known_devices` (list of full product codes with `device_type`, `device_version`, `hardware_revision` — `null` means no revision letter).
 

@@ -137,6 +137,12 @@ def eeprom_h(layout: dict) -> str:
                 bit_num = int(bit_key.split("_")[1])
                 out.append(f"#define EEPROM_{bit_name.upper()} (1u << {bit_num})")
             out.append("")
+        ev = fdef.get("enum_values")
+        if ev:
+            out.append(f"/* Values of field '{fname}' */")
+            for value, name in ev.items():
+                out.append(f"#define EEPROM_{fname.upper()}_{name.upper()} {int(value)}u")
+            out.append("")
 
     sizes = record_sizes(layout)
     if sizes:
@@ -227,6 +233,13 @@ def eeprom_py(layout: dict) -> str:
                     continue
                 bit_num = int(bit_key.split("_")[1])
                 flags_classes.append(f"    {bit_name.upper()} = 1 << {bit_num}")
+            flags_classes.append("")
+        ev = fdef.get("enum_values")
+        if ev:
+            cls = pascal(fname)
+            flags_classes.append(f"class {cls}(enum.IntEnum):")
+            for value, name in ev.items():
+                flags_classes.append(f"    {name.upper()} = {int(value)}")
             flags_classes.append("")
 
         py_type = _py_nested(fname, fdef, pre)
@@ -378,11 +391,19 @@ def devices_py(data: dict) -> str:
 # __init__.py for the generated package
 # ---------------------------------------------------------------------------
 
-def init_py() -> str:
+def init_py(layout: dict) -> str:
+    # Flag and enum classes of the layout are exported too.
+    classes = []
+    for fname, fdef in layout["fields"].items():
+        if fdef.get("bit_mapping"):
+            classes.append(pascal(fname) + "Flags")
+        if fdef.get("enum_values"):
+            classes.append(pascal(fname))
+    names = ", ".join(["DosimeterEeprom"] + classes)
     return (
         "# Auto-generated — do not edit manually.\n"
         "from .xdos_devices import DeviceType, KnownDevice, KNOWN_DEVICES, KNOWN_DEVICES_BY_NAME\n"
-        "from .eeprom_layout import (DosimeterEeprom, RtcFlagsFlags,\n"
+        f"from .eeprom_layout import ({names},\n"
         "                            FORMAT_VERSION_LATEST, RECORD_SIZE_BY_VERSION)\n"
     )
 
@@ -406,7 +427,7 @@ def main() -> None:
         "eeprom_layout.py": eeprom_py(layout),
         "xdos_devices.h": devices_h(dev_data),
         "xdos_devices.py": devices_py(dev_data),
-        "__init__.py": init_py(),
+        "__init__.py": init_py(layout),
     }
 
     for name, content in files.items():

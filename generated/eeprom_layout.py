@@ -11,6 +11,10 @@ class RtcFlagsFlags(enum.IntFlag):
     GEIGER_MODE_ENABLED = 1 << 4
     LED_ENABLED = 1 << 5
 
+class CalibrationType(enum.IntEnum):
+    LINEAR = 1
+    LINEAR_WITH_NEUTRONS = 2
+
 class HardwareVersion(ctypes.LittleEndianStructure):
     _pack_ = 1
     _fields_ = [
@@ -44,12 +48,16 @@ class DosimeterEeprom(ctypes.LittleEndianStructure):
         ("si_chip_thickness_cm", ctypes.c_float),
         ("energy_range_min_mev", ctypes.c_float),
         ("energy_range_max_mev", ctypes.c_float),
+        ("calibration_type", ctypes.c_uint16),
+        ("calibration_extra", ctypes.c_float * 4),
+        ("detector_id", ctypes.c_uint8),
     ]
 
 # Record size of each format_version; the CRC covers exactly these bytes.
-FORMAT_VERSION_LATEST = 2
+FORMAT_VERSION_LATEST = 3
 RECORD_SIZE_BY_VERSION = {
     0: 113,
     1: 113,
     2: 131,
+    3: 150,
 }

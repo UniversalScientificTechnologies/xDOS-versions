@@ -26,6 +26,9 @@ eeprom_layout:
     - version: 2
       last_field: energy_range_max_mev
       description: "Adds measurement metadata: default noise channels, silicon chip geometry and energy range (131 B)."
+    - version: 3
+      last_field: detector_id
+      description: "Adds the calibration type with its extra parameters (e.g. neutron selection) and the detector number (150 B)."
 
   fields:
     format_version:
@@ -120,3 +123,29 @@ eeprom_layout:
     energy_range_max_mev:
       type: float
       description: Upper bound of the measured deposited energy in MeV ($ERNG); NaN = unknown
+
+    # --- format_version 3 ---
+
+    calibration_type:
+      type: uint16
+      description: >
+        How to read the calibration fields (calibration_constants,
+        calibration_extra); 0xFFFF = not stated (records of version 1 and 2 -
+        calibration_constants only).
+      encoding: enum
+      enum_values:
+        1: linear
+        2: linear_with_neutrons
+
+    calibration_extra:
+      type: float[4]
+      description: >
+        Extra calibration parameters, meaning given by calibration_type; NaN =
+        unknown. linear: unused. linear_with_neutrons: [min_ch, max_ch, k, q] -
+        an event above threshold is a neutron if min_ch <= ch0 <= max_ch and
+        ch1 < q + k * ch0 (ch0 = amplitude, ch1 = second sample after a fixed
+        delay); written to the data file as $NCALIB.
+
+    detector_id:
+      type: uint8
+      description: Number of the detector within its experiment (e.g. the tab on the CZPAD display unit); 255 = unknown

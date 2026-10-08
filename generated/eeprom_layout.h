@@ -25,6 +25,9 @@ typedef struct __attribute__((packed)) {
     float si_chip_thickness_cm;
     float energy_range_min_mev;
     float energy_range_max_mev;
+    uint16_t calibration_type;
+    float calibration_extra[4];
+    uint8_t detector_id;
 } DosimeterEeprom;
 
 /* Bit flags for field 'rtc_flags' */
@@ -35,10 +38,15 @@ typedef struct __attribute__((packed)) {
 #define EEPROM_GEIGER_MODE_ENABLED (1u << 4)
 #define EEPROM_LED_ENABLED (1u << 5)
 
+/* Values of field 'calibration_type' */
+#define EEPROM_CALIBRATION_TYPE_LINEAR 1u
+#define EEPROM_CALIBRATION_TYPE_LINEAR_WITH_NEUTRONS 2u
+
 /* Record size of each format_version; the CRC covers exactly these bytes. */
-#define EEPROM_FORMAT_VERSION_LATEST 2
+#define EEPROM_FORMAT_VERSION_LATEST 3
 #define EEPROM_RECORD_SIZE_V1 113
 #define EEPROM_RECORD_SIZE_V2 131
+#define EEPROM_RECORD_SIZE_V3 150
 
 /* Record size for a format_version, 0 = unknown version. */
 static inline uint16_t eeprom_record_size(uint16_t format_version)
@@ -49,6 +57,8 @@ static inline uint16_t eeprom_record_size(uint16_t format_version)
         return 113;
     case 2:
         return 131;
+    case 3:
+        return 150;
     default:
         return 0;
     }
